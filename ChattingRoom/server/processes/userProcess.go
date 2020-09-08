@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"lessons/GitHub/Go_Projects/ChattingRoom/common/message"
+	"lessons/GitHub/Go_Projects/ChattingRoom/server/model"
 	"lessons/GitHub/Go_Projects/ChattingRoom/server/utils"
 	"net"
 )
@@ -30,15 +31,35 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	// 2.声明一个 LoginResMes
 	var loginResMes message.LoginResMes
 
-	// 验证先写死
-	if loginMes.UserId == 100 && loginMes.Password == "123456" {
-		// 合法
-		loginResMes.Code = 200
+	// 到 redis 数据库去验证
+	user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.Password)
+
+	if err != nil {
+		if err == model.ERROR_USER_NOTEXISTS {
+			loginResMes.Code = 500
+			loginResMes.Error = err.Error()
+		} else if err == model.ERROR_USER_PWD {
+			loginResMes.Code = 403
+			loginResMes.Error = err.Error()
+		} else {
+			loginResMes.Code = 505
+			loginResMes.Error = "服务器内部错误"
+		}
 
 	} else {
-		loginResMes.Code = 500
-		loginResMes.Error = "该用户不存在，请注册再使用......"
+		loginResMes.Code = 200
+		fmt.Println(user, "登陆成功")
 	}
+
+	// // 验证先写死
+	// if loginMes.UserId == 100 && loginMes.Password == "123456" {
+	// 	// 合法
+	// 	loginResMes.Code = 200
+
+	// } else {
+	// 	loginResMes.Code = 500
+	// 	loginResMes.Error = "该用户不存在，请注册再使用......"
+	// }
 
 	// 3.将 loginResMes 序列化
 	data, err := json.Marshal(loginResMes)

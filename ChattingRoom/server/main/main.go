@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"lessons/GitHub/Go_Projects/ChattingRoom/server/model"
 	"net"
 )
 
@@ -153,7 +154,20 @@ func process(c net.Conn) {
 
 }
 
+// 初始化 UserDao
+func initUserDao() {
+	// 这里的 pool 是一个全局的变量
+	// 这里需要注意一个初始化顺序问题
+	// 先初始化 pool ，再初始化 UserDao
+	model.MyUserDao = model.NewUserDao(pool)
+}
+
 func main() {
+
+	// 初始化链接池
+	initPool("localhost:6379", 16, 0, 300)
+	// 初始化 UserDao
+	initUserDao()
 
 	// 提示信息
 	fmt.Println("服务器[新的结构]在8889端口监听......")

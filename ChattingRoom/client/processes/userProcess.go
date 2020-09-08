@@ -81,7 +81,7 @@ func (this *UserProcess) Login(userId int, password string) (err error) {
 
 	// 这里还需要处理服务器端返回的消息
 
-	// fmt.Printf("客户端发送消息长度为 %d,内容为 %s\n", len(data), string(data))
+	fmt.Printf("客户端发送消息长度为 %d,内容为 %s\n", len(data), string(data))
 	// 创建一个 Transfer 实例
 	tf := &utils.Transfer{
 		Conn: conn,
@@ -108,7 +108,7 @@ func (this *UserProcess) Login(userId int, password string) (err error) {
 		for {
 			server.ShowMenu()
 		}
-	} else if loginResMes.Code == 500 {
+	} else {
 		fmt.Println(loginResMes.Error)
 	}
 
