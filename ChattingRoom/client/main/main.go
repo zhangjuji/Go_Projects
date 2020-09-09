@@ -9,6 +9,7 @@ import (
 // 定义两个变量，一个表示用户的id，一个表示用户的密码
 var userId int
 var password string
+var username string
 
 func main() {
 
@@ -39,6 +40,16 @@ func main() {
 
 		case 2:
 			fmt.Println("注册用户")
+			fmt.Println("请输入用户id：")
+			fmt.Scanf("%d\n", &userId)
+			fmt.Println("请输入用户密码：")
+			fmt.Scanf("%s\n", &password)
+			fmt.Println("请输入用户名：")
+			fmt.Scanf("%s\n", &username)
+			// 调用 UserProcess ，完成注册请求
+			up := &processes.UserProcess{}
+			up.Register(userId, password, username)
+
 		case 3:
 			fmt.Println("欢迎下次使用")
 			os.Exit(0)

@@ -7,9 +7,79 @@ import (
 	"lessons/GitHub/Go_Projects/ChattingRoom/client/utils"
 	"lessons/GitHub/Go_Projects/ChattingRoom/common/message"
 	"net"
+	"os"
 )
 
 type UserProcess struct {
+}
+
+func (this *UserProcess) Register(userId int, password string, username string) (err error) {
+	// 1.链接到服务器
+	conn, err := net.Dial("tcp", "localhost:8889")
+	if err != nil {
+		fmt.Println("net.Dial err = ", err)
+		return
+	}
+
+	// 延时关闭
+	defer conn.Close()
+
+	// 2.准备通过conn发送消息给服务器
+	var mes message.Message
+	mes.Type = message.RegisterMesType
+
+	// 3.创建一个 registerMes 结构体
+	var registerMes message.RegisterMes
+	registerMes.User.UserId = userId
+	registerMes.User.Password = password
+	registerMes.User.UserName = username
+
+	// 4.将 registerMes 序列化
+	data, err := json.Marshal(registerMes)
+	if err != nil {
+		fmt.Println("registerMes json.Marshal err = ", err)
+		return
+	}
+
+	// 5.把 data 赋给 mes.Data 字段
+	mes.Data = string(data)
+
+	// 6.将 mes 进行序列化
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("mes json.Marshal err = ", err)
+		return
+	}
+
+	// 7.创建一个 Transfer 实例
+	tf := &utils.Transfer{
+		Conn: conn,
+	}
+
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("注册发送信息错误 err = ", err)
+	}
+
+	mes, err = tf.ReadPkg()
+
+	if err != nil {
+		fmt.Println("readPkg(conn) err = ", err)
+		return
+	}
+
+	// 反序列化成 mes.Data
+	var registerResMes message.RegisterResMes
+	err = json.Unmarshal([]byte(mes.Data), &registerResMes)
+	if registerResMes.Code == 200 {
+		fmt.Println("注册成功，可以重新登陆")
+		os.Exit(0)
+	} else {
+		fmt.Println(registerResMes.Error)
+		os.Exit(0)
+	}
+
+	return
 }
 
 // 给关联一个用户登录的方法
@@ -30,26 +100,26 @@ func (this *UserProcess) Login(userId int, password string) (err error) {
 	// 延时关闭
 	defer conn.Close()
 
-	// 2.准备通过conn发送消息给服务器
+	// 2.准备通过 conn 发送消息给服务器
 	var mes message.Message
 	mes.Type = message.LoginMesType
 
-	// 3.创建一个LoginMes 结构体
+	// 3.创建一个 LoginMes 结构体
 	var loginMes message.LoginMes
 	loginMes.UserId = userId
 	loginMes.Password = password
 
-	// 4.将loginMes序列化
+	// 4.将 loginMes 序列化
 	data, err := json.Marshal(loginMes)
 	if err != nil {
 		fmt.Println("loginMes json.Marshal err = ", err)
 		return
 	}
 
-	// 5.把data赋给 mes.Data字段
+	// 5.把 data 赋给 mes.Data 字段
 	mes.Data = string(data)
 
-	// 6.将mes进行序列化
+	// 6.将 mes 进行序列化
 	data, err = json.Marshal(mes)
 	if err != nil {
 		fmt.Println("mes json.Marshal err = ", err)
