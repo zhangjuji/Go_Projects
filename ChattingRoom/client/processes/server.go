@@ -21,13 +21,18 @@ func (this *Server) ShowMenu() {
 	fmt.Println("-------4.退出系统-------")
 
 	var key int
+	var content string
+
+	smsProcess := &SmsProcess{}
 	fmt.Scanf("%d\n", &key)
 	switch key {
 	case 1:
-		fmt.Println("显示在线用户列表")
-
+		// fmt.Println("显示在线用户列表")
+		showOnlineUser()
 	case 2:
-		fmt.Println("发送消息")
+		fmt.Println("请输入您想群发的消息")
+		fmt.Scanf("%s\n", &content)
+		smsProcess.SendGroupMes(content)
 	case 3:
 		fmt.Println("信息列表")
 	case 4:
