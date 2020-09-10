@@ -168,6 +168,17 @@ func (this *UserProcess) Login(userId int, password string) (err error) {
 	if loginResMes.Code == 200 {
 		// fmt.Println("登陆成功")
 
+		// 显示当前在线用户列表，遍历 loginResMes.UserIds
+		fmt.Println("当前在线用户列表如下：")
+		for _, v := range loginResMes.UserIds {
+
+			if v == userId {
+				continue
+			}
+			fmt.Println("用户id:\t", v)
+		}
+		fmt.Print("\n\n")
+
 		// 客户端启动一个协程
 		// 该协程保持和服务器端的通讯,如果服务器有数据推送给客户端
 		// 则接受并显示在客户端的终端

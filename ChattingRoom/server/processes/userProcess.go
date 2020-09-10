@@ -10,7 +10,60 @@ import (
 )
 
 type UserProcess struct {
-	Conn net.Conn // 链接
+	Conn   net.Conn // 链接
+	UserId int
+}
+
+func (this *UserProcess) NotifyOtherOnlineUser(userId int) {
+
+	// 遍历 onlineUsers，然后一个一个地发送 NotifyUserStatusMes
+	for id, up := range userMgr.onlineUsers {
+		// 过滤自己
+		if id == userId {
+			continue
+		}
+		up.NotifyMeOnline(userId)
+
+	}
+}
+
+func (this *UserProcess) NotifyMeOnline(userId int) {
+
+	var mes message.Message
+	mes.Type = message.NotifyUserStatusMesType
+
+	var notifyUserStatusMes message.NotifyUserStatusMes
+	notifyUserStatusMes.UserId = userId
+	notifyUserStatusMes.Status = message.UserOnLine
+
+	// 序列化
+	data, err := json.Marshal(notifyUserStatusMes)
+	if err != nil {
+		fmt.Println("notifyUserStatusMes 序列化出错，err = ", err)
+		return
+	}
+
+	// 将序列化的 notifyUserStatusMes 赋值给 mes.Data
+	mes.Data = string(data)
+
+	// 对 mes 再次序列化，准备发送
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("mes 序列化出错，err = ", err)
+		return
+	}
+
+	// 创建 Transfer 实例，发送
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("上线通知他人出错，err = ", err)
+		return
+	}
+
 }
 
 func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
@@ -102,6 +155,18 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 
 	} else {
 		loginResMes.Code = 200
+		// 这里用户登陆成功，我们就把该登陆成功的用户放入到 UserMgr 中
+		// 将登陆成功的用户的 id 赋给 this
+		this.UserId = loginMes.UserId
+		userMgr.AddOnlineUser(this)
+		// 通知其他的在线用户，我上线了
+		this.NotifyOtherOnlineUser(loginMes.UserId)
+		// 将当前在线用户的 id 放入到 loginResMes.UserIds
+		// 遍历 userMgr.onlineUsers
+		for id, _ := range userMgr.onlineUsers {
+			loginResMes.UserIds = append(loginResMes.UserIds, id)
+		}
+
 		fmt.Println(user, "登陆成功")
 	}
 
