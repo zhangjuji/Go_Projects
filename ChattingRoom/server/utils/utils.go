@@ -28,7 +28,7 @@ func (this *Transfer) ReadPkg() (mes message.Message, err error) {
 		return
 	}
 
-	fmt.Println("读取到的长度 = ", this.Buf[:4])
+	// fmt.Println("读取到的长度 = ", this.Buf[:4])
 
 	// 根据buf[:4] 转成一个	uint32类型
 	var pkgLen uint32

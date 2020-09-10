@@ -7,4 +7,5 @@ type User struct {
 	Password   string `json:"password"`
 	UserName   string `json:"userName"`
 	UserStatus int    `json:"userStatus"`
+	Sex        string `json:"sex"`
 }
